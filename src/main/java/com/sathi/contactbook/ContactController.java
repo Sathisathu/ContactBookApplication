@@ -69,7 +69,11 @@ public class ContactController {
             nameTextField.clear();
             phoneTextField.clear();
             emailTextField.clear();
-            contactBook.saveFile("contacts");
+            try{
+                contactBook.saveFile("contacts");
+            } catch (IOException e) {
+                System.out.println("EXCEPTIONS: "+e.getLocalizedMessage());
+            }
         }else{
             System.out.println("Contact already exists.");
         }

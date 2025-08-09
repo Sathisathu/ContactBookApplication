@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class ContactBook {
     private final HashMap<String, Contact> contactBook = new HashMap<>();
-    Path folderPath = Paths.get("src/com.sathi.contactbook.ContactBook");
+    Path folderPath = Paths.get("data");
 
     public boolean addContact(Contact contact) {
         if (contactBook.containsKey(contact.name())) {
