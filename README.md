@@ -22,8 +22,9 @@ To set up and run this project on your local machine, follow these steps:
 
 1.  **Prerequisites:**
     * Java Development Kit (JDK) 21 or newer.
+    * JavaFX SDK 21 or newer.
     * Apache Maven.
-    * Git.
+
 
 2.  **Clone the Repository:**
     ```sh
