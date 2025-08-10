@@ -10,8 +10,8 @@ public class ContactBookApplication extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(ContactBookApplication.class.getResource("/contactView.fxml"));
 
-        Scene scene = new Scene(fxmlLoader.load(),600,400);
-        stage.setTitle("com.sathi.contactbook.Contact Book");
+        Scene scene = new Scene(fxmlLoader.load());
+        stage.setTitle("Contact Book");
         stage.setScene(scene);
         stage.show();
     }
