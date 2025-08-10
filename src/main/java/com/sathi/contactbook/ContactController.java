@@ -1,11 +1,16 @@
 package com.sathi.contactbook;
 
+import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Optional;
 
 public class ContactController {
@@ -18,7 +23,9 @@ public class ContactController {
     @FXML
     private TextField emailTextField;
     @FXML
+    private TextField searchTextField;
 
+    @FXML
     private Button saveButton;
     @FXML
     private VBox mainActionsVBox;
@@ -36,6 +43,7 @@ public class ContactController {
 
 
     private final ContactBook contactBook = new ContactBook();
+    private ObservableList<Contact> masterContactList;
 
     @FXML
     public void initialize() {
@@ -48,18 +56,35 @@ public class ContactController {
         phoneColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().phoneNumber()));
         emailColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().email()));
 
-        deleteButton.setDisable(true);
-
-        contactTableView.getSelectionModel().selectedItemProperty().addListener((obs,oldSelection,newSelection)->{
-            deleteButton.setDisable(newSelection == null);
-        });
-
         try {
             contactBook.loadFile("contacts");
         } catch (IOException e) {
             System.out.println("EXceptions: "+e);
         }
-         contactTableView.getItems().setAll(contactBook.getAllContacts());
+
+        masterContactList = FXCollections.observableArrayList(contactBook.getAllContacts());
+
+        FilteredList<Contact> filteredData = new FilteredList<>(masterContactList,p -> true);
+
+        searchTextField.textProperty().addListener((observable, oldValue, newValue) ->{
+            filteredData.setPredicate(contact -> {
+                if(newValue == null || newValue.isEmpty())
+                    return true;
+
+                String lowerCaseFilter = newValue.toLowerCase();
+
+                if(contact.name().toLowerCase().contains(lowerCaseFilter))
+                    return true;
+                return false;
+            });
+        });
+        contactTableView.setItems(filteredData);
+
+        deleteButton.setDisable(true);
+
+        contactTableView.getSelectionModel().selectedItemProperty().addListener((obs,oldSelection,newSelection)->{
+            deleteButton.setDisable(newSelection == null);
+        });
     }
 
     @FXML
@@ -69,13 +94,17 @@ public class ContactController {
         String email = emailTextField.getText();
 
         if(name.isBlank() || phone.isBlank() || email.isBlank()){
-            System.out.println("All fields are required.");
+            Alert fieldError = new Alert(Alert.AlertType.ERROR);
+            fieldError.setTitle("Incomplete Form");
+            fieldError.setHeaderText("Required fields are missing");
+            fieldError.setContentText("Please fill out all fields");
+            fieldError.showAndWait();
             return;
         }
         Contact newContact = new Contact(name,phone,email);
         if(contactBook.addContact(newContact)){
 
-            contactTableView.getItems().add(newContact);
+            masterContactList.add(newContact);
 
             nameTextField.clear();
             phoneTextField.clear();
@@ -124,7 +153,7 @@ public class ContactController {
         Optional<ButtonType> result = alert.showAndWait();
         if(result.isPresent() && result.get() == ButtonType.OK){
             contactBook.removeContact(selectedContact.name());
-            contactTableView.getItems().remove(selectedContact);
+            masterContactList.remove(selectedContact);
             contactBook.saveFile("contacts");
             deleteAlert.setContentText("Contact deleted successfully");
             deleteAlert.showAndWait();
