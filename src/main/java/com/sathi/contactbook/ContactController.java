@@ -7,7 +7,9 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -59,7 +61,7 @@ public class ContactController {
         try {
             contactBook.loadFile("contacts");
         } catch (IOException e) {
-            System.out.println("EXceptions: "+e);
+            System.out.println("Error in loading file: "+e.getLocalizedMessage());
         }
 
         masterContactList = FXCollections.observableArrayList(contactBook.getAllContacts());
@@ -93,9 +95,18 @@ public class ContactController {
         String phone = phoneTextField.getText();
         String email = emailTextField.getText();
 
+        Alert fieldError = new Alert(Alert.AlertType.ERROR);
+        fieldError.setTitle("Error in new Contact");
+
+        //      Setting Icon for the Alert Stage
+        try {
+            Stage alertStage = (Stage) fieldError.getDialogPane().getScene().getWindow();
+            alertStage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/appIcon.png")));
+        } catch (Exception e) {
+            System.err.println("Error setting alert icon: " + e.getMessage());
+        }
+
         if(name.isBlank() || phone.isBlank() || email.isBlank()){
-            Alert fieldError = new Alert(Alert.AlertType.ERROR);
-            fieldError.setTitle("Incomplete Form");
             fieldError.setHeaderText("Required fields are missing");
             fieldError.setContentText("Please fill out all fields");
             fieldError.showAndWait();
@@ -112,10 +123,12 @@ public class ContactController {
             try{
                 contactBook.saveFile("contacts");
             } catch (IOException e) {
-                System.out.println("EXCEPTIONS: "+e.getLocalizedMessage());
+                System.out.println("Error in Saving file: "+e.getLocalizedMessage());
             }
         }else{
-            System.out.println("Contact already exists.");
+            fieldError.setHeaderText("Contact already exists");
+            fieldError.setContentText("Try different name");
+            fieldError.showAndWait();
         }
         hideAddContactForm();
     }
@@ -140,23 +153,34 @@ public class ContactController {
     public void onDeleteButtonClick() throws IOException{
         Contact selectedContact = contactTableView.getSelectionModel().getSelectedItem();
         if(selectedContact == null) return;
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        Alert deleteAlert = new Alert(Alert.AlertType.INFORMATION);
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        Alert deletedAlert = new Alert(Alert.AlertType.INFORMATION);
 
-        alert.setTitle("Delete Contact");
-        alert.setHeaderText("Are you sure want to delete this contact?");
-        alert.setContentText(selectedContact.name()+"\n"+selectedContact.phoneNumber());
+        try {
 
-        deleteAlert.setTitle("Delete Contact");
-        deleteAlert.setHeaderText(null);
+            Stage confirmAlertStage = (Stage) confirmAlert.getDialogPane().getScene().getWindow();
+            Stage infoAlertStage = (Stage) deletedAlert.getDialogPane().getScene().getWindow();
 
-        Optional<ButtonType> result = alert.showAndWait();
+            confirmAlertStage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/appIcon.png")));
+            infoAlertStage.getIcons().add(new Image(getClass().getResourceAsStream("/icons/appIcon.png")));
+        } catch (Exception e) {
+            System.err.println("Error setting alert icon: " + e.getMessage());
+        }
+
+        confirmAlert.setTitle("Delete Contact");
+        confirmAlert.setHeaderText("Are you sure want to delete this contact?");
+        confirmAlert.setContentText(selectedContact.name()+"\n"+selectedContact.phoneNumber());
+
+        deletedAlert.setTitle("Delete Contact");
+        deletedAlert.setHeaderText(null);
+
+        Optional<ButtonType> result = confirmAlert.showAndWait();
         if(result.isPresent() && result.get() == ButtonType.OK){
             contactBook.removeContact(selectedContact.name());
             masterContactList.remove(selectedContact);
             contactBook.saveFile("contacts");
-            deleteAlert.setContentText("Contact deleted successfully");
-            deleteAlert.showAndWait();
+            deletedAlert.setContentText("Contact deleted successfully");
+            deletedAlert.showAndWait();
         }
         else{
             System.out.println("Deletion Cancelled");

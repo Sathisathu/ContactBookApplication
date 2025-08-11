@@ -10,7 +10,9 @@ import java.util.HashMap;
 
 public class ContactBook {
     private final HashMap<String, Contact> contactBook = new HashMap<>();
-    Path folderPath = Paths.get("data");
+
+    private static final String USER_HOME = System.getProperty("user.home");
+    private Path folderPath = Paths.get(USER_HOME,".ContactBook");
 
     public boolean addContact(Contact contact) {
         if (contactBook.containsKey(contact.name())) {
@@ -22,38 +24,32 @@ public class ContactBook {
         }
     }
 
-    public Contact findContactByName(String name){
-        return contactBook.getOrDefault(name, null);
-    }
-
-    public boolean removeContact(String name){
-        return contactBook.remove(name) != null;
+    public void removeContact(String name){
+        contactBook.remove(name);
     }
 
     public Collection<Contact> getAllContacts(){
         return contactBook.values();
     }
 
-    public void saveFile(String filename) throws IOException{
-//      Creating Directory if not exists
-        if(Files.notExists(folderPath)) Files.createDirectories(folderPath);
+    public void saveFile(String filename) throws IOException {
+            createAppDataFolder();
+//          Creating file if not exists
+            Path filepath = folderPath.resolve(filename + ".csv");
+            if (Files.notExists(filepath)) Files.createFile(filepath);
 
-//      Creating file if not exists
-        Path filepath = folderPath.resolve(filename+".csv");
-        if(Files.notExists(filepath)) Files.createFile(filepath);
-
-        StringBuilder sb = new StringBuilder();
-        for (Contact contact:contactBook.values()) {
-            sb.append(contact.name()).append(',');
-            sb.append(contact.phoneNumber()).append(',');
-            sb.append(contact.email()).append('\n');
-        }
-        Files.writeString(filepath, sb);
-        System.out.println("Contacts Saved Successfully.");
+            StringBuilder sb = new StringBuilder();
+            for (Contact contact : contactBook.values()) {
+                sb.append(contact.name()).append(',');
+                sb.append(contact.phoneNumber()).append(',');
+                sb.append(contact.email()).append('\n');
+            }
+            Files.writeString(filepath, sb);
+//            System.out.println("Contacts Saved Successfully.");
     }
-    public boolean loadFile(String filename) throws IOException{
+    public void loadFile(String filename) throws IOException{
         Path filePath = folderPath.resolve(filename+".csv");
-        if(Files.notExists(filePath)) return false;
+        if(Files.notExists(filePath)) return;
         BufferedReader reader = Files.newBufferedReader(filePath);
         String line;
         contactBook.clear();
@@ -65,6 +61,14 @@ public class ContactBook {
             contactBook.put(name,new Contact(name,phone,email));
         }
         reader.close();
-        return true;
+    }
+    private void createAppDataFolder() throws IOException{
+        if(Files.notExists(folderPath)) Files.createDirectories(folderPath);
+
+        String os = System.getProperty("os.name").toLowerCase();
+        if(os.contains("windows")){
+            Files.setAttribute(folderPath,"dos:hidden",true);
+        }
+
     }
 }
