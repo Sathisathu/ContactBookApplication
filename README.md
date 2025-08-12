@@ -8,7 +8,7 @@ A simple and responsive desktop application for managing personal contacts, buil
 * **Add Contacts:** A dedicated form to add new contacts with a name, phone number, and email.
 * **Delete Contacts:** Select and delete contacts with a confirmation dialog to prevent accidental deletion.
 * **Search Contacts:** Search and filter the contacts by their name
-* **Persistent Storage:** All contacts are automatically saved to a `data/contacts.csv` file and loaded on startup.
+* **Persistent Storage:** All contacts are automatically saved to user's home directory and loaded on startup.
 * **Responsive UI:** The application window and layout resize gracefully.
 
 ## Technologies Used
